@@ -14,7 +14,7 @@ matplotlib.rcParams.update({'font.size': 8})
 
 class ExperimentBuilder(nn.Module):
     def __init__(self, network_model, experiment_name, num_epochs, train_data, val_data,
-                 test_data, weight_decay_coefficient, use_gpu, continue_from_epoch=-1):
+                 test_data, weight_decay_coefficient, use_gpu, learning_rate, continue_from_epoch=-1):
         """
         Initializes an ExperimentBuilder object. Such an object takes care of running training and evaluation of a deep net
         on a given dataset. It also takes care of saving per epoch models and automatically inferring the best val model
@@ -34,6 +34,7 @@ class ExperimentBuilder(nn.Module):
 
         self.experiment_name = experiment_name
         self.model = network_model
+        self.learning_rate = learning_rate
 
         if torch.cuda.device_count() > 1 and use_gpu:
             self.device = torch.cuda.current_device()
@@ -71,9 +72,10 @@ class ExperimentBuilder(nn.Module):
         print('Total number of parameters', total_num_parameters)
         print('Total number of conv layers', num_conv_layers)
         print('Total number of linear layers', num_linear_layers)
+        print("Learning rate chosen is", self.model.get_learning_rate())
 
         self.optimizer = optim.Adam(self.parameters(), amsgrad=False,
-                                    weight_decay=weight_decay_coefficient)
+                                    weight_decay=weight_decay_coefficient, lr=0.001)
         self.learning_rate_scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer,
                                                                             T_max=num_epochs,
                                                                             eta_min=0.00002)
@@ -121,8 +123,10 @@ class ExperimentBuilder(nn.Module):
 
     def plot_func_def(self,all_grads, layers):
         
-       
+        all_grads = [x.cpu() for x in all_grads]
+        print("All good here")
         """
+
         Plot function definition to plot the average gradient with respect to the number of layers in the given model
         :param all_grads: Gradients wrt weights for each layer in the model.
         :param layers: Layer names corresponding to the model parameters
@@ -141,6 +145,28 @@ class ExperimentBuilder(nn.Module):
         return plt
         
     
+    # def plot_grad_flow(self, named_parameters):
+    #     """
+    #     The function is being called in Line 298 of this file. 
+    #     Receives the parameters of the model being trained. Returns plot of gradient flow for the given model parameters.
+       
+    #     """
+    #     all_grads = []
+    #     layers = []
+        
+    #     """
+    #     Complete the code in the block below to collect absolute mean of the gradients for each layer in all_grads with the             layer names in layers.
+    #     """
+    #     ########################################
+        
+        
+    #     ########################################
+            
+        
+    #     plt = self.plot_func_def(all_grads, layers)
+        
+    #     return plt
+
     def plot_grad_flow(self, named_parameters):
         """
         The function is being called in Line 298 of this file. 
@@ -149,7 +175,24 @@ class ExperimentBuilder(nn.Module):
         """
         all_grads = []
         layers = []
-        
+
+        for name, parameter in named_parameters:
+            print("name: ", name)
+            # print(type(name))
+            # print(len(name))
+            
+
+            if 'logit' in name:
+              name_to_save = name
+            else:
+              lista = name.split(".")
+              name_to_save = lista[1] + "_" + lista[3]
+            if (parameter.requires_grad) and ("bias" not in name):
+                layers.append(name_to_save)
+                calculation = parameter.grad.abs().mean()
+                # print("Calculation: ", calculation)
+                # print("Calc. type: ", type(calculation))
+                all_grads.append(calculation)
         """
         Complete the code in the block below to collect absolute mean of the gradients for each layer in all_grads with the             layer names in layers.
         """
@@ -158,7 +201,7 @@ class ExperimentBuilder(nn.Module):
         
         ########################################
             
-        
+        print("Everything ok here.")
         plt = self.plot_func_def(all_grads, layers)
         
         return plt
