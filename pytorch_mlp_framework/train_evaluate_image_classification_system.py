@@ -50,9 +50,9 @@ elif args.block_type == 'empty_block':
 elif args.block_type == 'conv_bn_block':
     processing_block_type = ConvolutionalProcessingBlockBatchNorm
     dim_reduction_block_type = ConvolutionalDimensionalityReductionBlockBatchNorm
-# elif args.block_type == 'conv_bn_rc_block':
-#     processing_block_type = ConvolutionalProcessingBlockBNRC
-#     dim_reduction_block_type = ConvolutionalDimensionalityReductionBlockBNRC
+elif args.block_type == 'conv_bn_rc_block':
+    processing_block_type = ConvolutionalProcessingBlockBatchNorm_rc
+    dim_reduction_block_type = ConvolutionalDimensionalityReductionBlockBatchNorm_rc
 else:
     raise ModuleNotFoundError
 
