@@ -72,10 +72,10 @@ class ExperimentBuilder(nn.Module):
         print('Total number of parameters', total_num_parameters)
         print('Total number of conv layers', num_conv_layers)
         print('Total number of linear layers', num_linear_layers)
-        print("Learning rate chosen is", self.model.get_learning_rate())
+        print("Learning rate chosen is", learning_rate)
 
         self.optimizer = optim.Adam(self.parameters(), amsgrad=False,
-                                    weight_decay=weight_decay_coefficient, lr=0.001)
+                                    weight_decay=weight_decay_coefficient, lr=learning_rate)
         self.learning_rate_scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer,
                                                                             T_max=num_epochs,
                                                                             eta_min=0.00002)
